@@ -1,17 +1,21 @@
 // Arduino sketch for Adafruit Metro Mini (UNO board type) driving DotStar high density
-// LED strip (max 60 mA per RGB pixel) for microscope ringlight.
+// LED strip (max 60 mA per RGB pixel) for a microscope or camera ringlight.
 //
-// Copyright by Dave Cook caveduck17@gmail.com, Nov 2021.
+// Copyright by Dave Cook caveduck17@gmail.com, December 22, 2021.  See LICENSE for details.
+//
+// Printable parts for a ringlight to fit a standard 48mm stereo microscope nosepiece
+// can be found here:  
 //
 // Features
-//    Uses only 2 discrete outputs and 2 analog inputs, should run on virtually any Arduino
+//    Uses only 2 discrete outputs and 2 analog inputs, should run on virtually any Arduino.
+//    Smooth control response, low flicker
+//    Brightness control knob: far CCW position for LEDs off
+//    Hue control knob: far CCW is brightness mode, turn CW to enter HSV mode
 //    Powered from micro-USB port
 //      Output brightness limited by upstream USB 5V supply.  Soft limits are compile time selectable.
-//        On USB hub from computer you can only rely on about 500 mA, so must not exceed ~20% white brightness
-//        Powered from Adafruit 2.5V wall adapter you should be able to run the 40-LED strip at full power (2.4A nominal).
-//    Brightness control knob, far CCW position for LEDs off
-//    Hue control knob (white center with deadband?  exact UX is TBD)
-//    Smooth control response, low flicker
+//        Powered from an Adafruit 2.5A or Rasberry Pi 3A wall adapter you can run
+//        the 40-LED strip of DotStars at full power (2.4A nominal).
+//        On a USB hub from computer you can only rely on about 500 mA, so must not exceed ~20% white brightness
 
 #include <FastLED.h>
 
@@ -19,7 +23,15 @@
 
 #define NUM_LEDS 40
 
-#define DATA_PIN 3                  // green wire on DotStar strips
+// Significant pins on Adafruit Arduino Metro Mini
+// USB VCC  1
+// RST      2
+// 3V reg   3                       // regulated 3V out - 500mA max total between 3V and 5V
+// 5V reg   4                       // regulated 5V out - 500mA max total 3V/5V
+// GND      5-6
+
+// pins used by this firmware
+#define DATA_PIN 3                  // green wire on DotStar strips CHANGE TO 11?
 #define CLOCK_PIN 13                // yellow wire on DotStar strips
 #define ANALOG_COLOR_PIN      A4    // color knob input pin
 #define ANALOG_BRIGHTNESS_PIN A5    // brightness knob input pin
@@ -40,11 +52,13 @@
 #define LOW_POWER 1                 // always limit current draw to hub-suitable levels
 #else
 #define REFRESH_RATE 200            // 200 Hz gives very smooth response
-#define LOW_POWER 0                 // still low power for safety while testing often
+#define LOW_POWER 0                 // use low power for safety while testing often
 #endif
 
 // startup delay gives a window to enter the bootloader in case the default config is eating too
 // much power and tripping overcurrent protection
+// You can always get around this situation by disconnecting the load; this is really for the
+// case where everything is hardwired and disconnecting would be inconvenient or destructive.
 #define STARTUP_DELAY 2000          // initialization wait in msec
 
 #define ANALOG_IN_SMOOTHING_SAMPLES     12   // number of analog input samples to average in ring buffer
